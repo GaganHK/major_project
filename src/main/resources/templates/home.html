@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Home Page</title>
+    <style>
+        .container > * {
+            transition: transform 0.3s ease;
+        }
+        .container > *:hover {
+            transform: scale(1.10);
+        }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 150px;
+            position: relative;
+            margin: 0;
+            min-height: 50vh;
+            background: transparent;
+            overflow-x: hidden;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        h1 {
+            margin-bottom: 50px;
+        }
+        .container {
+            display: inline-flex;
+            justify-content: center;
+            gap: 50px;
+            position: relative;
+            z-index: 2;
+        }
+        .box {
+            border: 2px solid #007bff;
+            padding: 40px;
+            border-radius: 12px;
+            width: 250px;
+            background-color: #f0ecaa;
+        }
+        h2 {
+            color: #077df4;
+        }
+        a {
+            display: block;
+            margin: 10px 0;
+            text-decoration: none;
+            font-weight: bold;
+            color: #333;
+            background-color: #e1eaff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        a:hover {
+            background-color: #d0dfff;
+        }
+        button {
+            margin: 15px;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .dark-mode {
+            background-color: #111 !important;
+            color: #fbf6f6 !important;
+        }
+        .dark-mode input,
+        .dark-mode button,
+        .dark-mode .box,
+        .dark-mode .container {
+            background-color: #222 !important;
+            color: #f0f0f0 !important;
+            border-color: #f9f5f5 !important;
+        }
+        .dark-mode a {
+            background-color: #333 !important;
+            color: #f0f0f0 !important;
+        }
+        .dark-mode a:hover {
+            background-color: #444 !important;
+        }
+        .floating-image-left {
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            width: 550px;
+            height: 300px;
+            z-index: 3;
+            opacity: 1.0;
+            animation: floatLeftImage 8s ease-in-out infinite;
+        }
+        @keyframes floatLeftImage {
+            0% { transform: translateY(-50%) translateX(0); }
+            50% { transform: translateY(-60%) translateX(10px); }
+            100% { transform: translateY(-50%) translateX(0); }
+        }
+        @media (max-width: 768px) {
+            .floating-image-left {
+                width: 150px;
+                height: 75px;
+                left: 15px;
+            }
+            .container {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+        }
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<img src="/images/welcome.webp" alt="Floating Left Image" class="floating-image-left" />
+    <h1>Welcome to the ReadMorph</h1>
+    <button id="themeToggle" title="Toggle Dark Mode">🌓</button>
+    <div class="background-animation">
+        <canvas id="flowCanvas"></canvas>
+    </div>
+    <div class="container">
+        <div class="box">
+            <h2>Admin</h2>
+            <a href="/admin/login">Login</a>
+            <a href="/admin/signup">Sign Up</a>
+        </div>
+        <div class="box">
+            <h2>Student</h2>
+            <a href="/student/login">Login</a>
+            <a href="/student/signup">Sign Up</a>
+        </div>
+    </div>
+
+    <script>
+        // Theme Toggle
+        const toggleBtn = document.getElementById('themeToggle');
+        toggleBtn.style.position = 'fixed';
+        toggleBtn.style.top = '12px';
+        toggleBtn.style.right = '12px';
+        toggleBtn.style.background = '#ffad09';
+        toggleBtn.style.border = 'none';
+        toggleBtn.style.borderRadius = '50%';
+        toggleBtn.style.width = '36px';
+        toggleBtn.style.height = '36px';
+        toggleBtn.style.fontSize = '18px';
+        toggleBtn.style.cursor = 'pointer';
+        toggleBtn.style.zIndex = '9999';
+
+         toggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        try {
+            localStorage.setItem('darkMode', isDarkMode);
+        } catch (e) {
+            console.warn('localStorage not available');
+        }
+        toggleBtn.textContent = isDarkMode ? '☀️' : '🌙';
+    });
+
+    window.onload = () => {
+        let isDarkMode = false;
+        try {
+            isDarkMode = localStorage.getItem('darkMode') === 'true';
+        } catch (e) {
+            console.warn('localStorage unavailable');
+        }
+        document.body.classList.toggle('dark-mode', isDarkMode);
+        toggleBtn.textContent = isDarkMode ? '☀️' : '🌙';
+    };
+
+        // Animation with Particle Constellation and Text Streams
+        const canvas = document.getElementById('flowCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+        let time = 0;
+
+        // Particle Class for Constellation
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+                this.opacity = Math.random() * 0.5 + 0.5;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Bounce off edges
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+
+                // Mouse interaction
+                const dx = mouseX - this.x;
+                const dy = mouseY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    this.speedX += dx * 0.001;
+                    this.speedY += dy * 0.001;
+                    this.opacity = 1;
+                } else {
+                    this.opacity = Math.max(0.9, this.opacity - 0.09);
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = `rgba(${document.body.classList.contains('dark-mode') ? '200, 200, 200' : '0, 123, 255'}, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Text Stream Class
+        class TextStream {
+            constructor(stream) {
+                this.text = stream.text;
+                this.x = canvas.width;
+                this.y = stream.y;
+                this.baseSpeed = stream.speed;
+                this.speed = stream.speed;
+                this.baseOpacity = stream.opacity;
+                this.opacity = stream.opacity;
+                this.morphing = false;
+                this.morphWord = null;
+                this.morphProgress = 0;
+                this.cursorOpacity = 1;
+            }
+
+            update() {
+                // Mouse interaction
+                const dx = mouseX - this.x;
+                const dy = mouseY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 200) {
+                    this.speed = this.baseSpeed * 0.5;
+                    this.y += dy * 0.01;
+                } else {
+                    this.speed = this.baseSpeed;
+                }
+
+                // Flicker effect
+                this.opacity = this.baseOpacity + Math.sin(time * 2) * 0.1;
+                this.cursorOpacity = Math.sin(time * 5) > 0 ? 1 : 0;
+
+                this.x -= this.speed;
+                if (this.x < -ctx.measureText(this.text).width) {
+                    this.x = canvas.width;
+                    this.y = this.baseY || this.y;
+                }
+
+                if (!this.morphing && Math.random() < 0.005) {
+                    const pair = morphPairs[Math.floor(Math.random() * morphPairs.length)];
+                    if (this.text.includes(pair[0])) {
+                        this.morphing = true;
+                        this.morphWord = pair;
+                        this.morphProgress = 0;
+                        // Add particles for morph effect
+                        const wordX = this.x + this.text.indexOf(pair[0]) * 10;
+                        for (let i = 0; i < 20; i++) {
+                            particles.push(new ParticleMorph(wordX, this.y));
+                        }
+                    }
+                }
+
+                if (this.morphing) {
+                    this.morphProgress += 0.03;
+                    if (this.morphProgress >= 1) {
+                        this.morphing = false;
+                        this.text = this.text.replace(this.morphWord[0], this.morphWord[1]);
+                    }
+                }
+            }
+
+            draw() {
+                // Gradient text
+                const gradient = ctx.createLinearGradient(this.x, this.y, this.x + 200, this.y);
+                gradient.addColorStop(0, `rgba(${document.body.classList.contains('dark-mode') ? '240, 240, 240' : '138, 43, 226'}, ${this.opacity})`);
+                gradient.addColorStop(1, `rgba(${document.body.classList.contains('dark-mode') ? '240, 240, 240' : '138, 43, 226'}, ${this.opacity * 0.5})`);
+                ctx.fillStyle = gradient;
+                ctx.font = '18px Arial';
+                ctx.fillText(this.text, this.x, this.y);
+
+                // Cursor
+                ctx.fillStyle = `rgba(${document.body.classList.contains('dark-mode') ? '240, 240, 240' : '138, 43, 226'}, ${this.cursorOpacity})`;
+                ctx.fillRect(this.x + ctx.measureText(this.text).width + 5, this.y - 15, 2, 20);
+
+                // Morphing with glow
+                if (this.morphing) {
+                    const morphText = this.morphWord[1];
+                    const opacity = Math.sin(this.morphProgress * Math.PI);
+                    ctx.fillStyle = `rgba(${document.body.classList.contains('dark-mode') ? '240, 240, 240' : '0, 123, 255'}, ${opacity})`;
+                    ctx.shadowColor = document.body.classList.contains('dark-mode') ? '#f0f0f0' : '#007bff';
+                    ctx.shadowBlur = 10;
+                    const wordX = this.x + this.text.indexOf(this.morphWord[0]) * 10;
+                    ctx.fillText(morphText, wordX, this.y);
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+
+        // Particle Class for Morphing Effect
+        class ParticleMorph {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 2 - 1;
+                this.speedY = Math.random() * 2 - 1;
+                this.opacity = 1;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.opacity -= 0.05;
+            }
+
+            draw() {
+                ctx.fillStyle = `rgba(${document.body.classList.contains('dark-mode') ? '240, 240, 240' : '0, 123, 255'}, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Particle System for Constellation
+        const particles = [];
+        const particleCount = 100;
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        // Text Streams
+        const textStreams = [
+            { text: "Scanning Text for OCR...", y: 100, speed: 2, opacity: 0.9 },
+            { text: "Extracting Data for NLP...", y: 200, speed: 1.5, opacity: 0.9 },
+            { text: "Processing Voice Input...", y: 300, speed: 1.8, opacity: 0.9 }
+        ];
+        const morphPairs = [
+            ['NLP', 'Analyze'],
+            ['Text', 'Data'],
+            ['Voice', 'Command'],
+            ['OCR', 'Extract']
+        ];
+        const streams = textStreams.map(stream => new TextStream(stream));
+
+        // Draw Connections for Constellation
+        function drawConnections() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    if (particles[i] instanceof Particle && particles[j] instanceof Particle) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < 100) {
+                            ctx.strokeStyle = `rgba(${document.body.classList.contains('dark-mode') ? '200, 200, 200' : '0, 123, 255'}, ${1 - distance / 100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Background Gradient
+        function drawBackground() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            if (document.body.classList.contains('dark-mode')) {
+                gradient.addColorStop(0, '#111');
+                gradient.addColorStop(1, '#222');
+            } else {
+                gradient.addColorStop(0, '#f0f0f0');
+                gradient.addColorStop(1, '#ffffff');
+            }
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Mouse Interaction
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+        });
+
+        // Animation Loop
+        function animate() {
+            drawBackground();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Update and Draw Particles
+            particles.forEach((particle, index) => {
+                particle.update();
+                particle.draw();
+                if (particle instanceof ParticleMorph && particle.opacity <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+
+            // Draw Connections
+            drawConnections();
+
+            // Draw Text Streams
+            streams.forEach(stream => {
+                stream.update();
+                stream.draw();
+            });
+
+            time += 0.016;
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>

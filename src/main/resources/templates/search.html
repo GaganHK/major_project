@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Speech to NLP Search</title>
+    <style>
+        /* Your existing styles unchanged */
+        body {
+          font-family: 'Poppins', sans-serif;
+          background-color: #fdfeff;
+          background-image: url('https://static.vecteezy.com/system/resources/previews/005/026/647/non_2x/luxury-black-gold-background-elegant-and-unique-free-vector.jpg');
+          background-size: cover;
+          background-position: center;
+          background-attachment: fixed;
+          padding: 40px;
+          color: white;
+          text-align: center;
+        }
+
+        h2, h4 { color: #ffad09; }
+
+        .search-container {
+          display: flex;
+          align-items: center;
+          background: white;
+          border-radius: 40px;
+          padding: 10px 20px;
+          width: 600px;
+          max-width: 90%;
+          box-shadow: 0 0 10px orange;
+          margin: 20px auto;
+          position: relative;
+        }
+
+        .icon-button {
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          margin: 0 8px;
+          color: black;
+        }
+
+        input[type="text"] {
+          flex: 1;
+          padding: 10px;
+          border-radius: 30px;
+          border: 1px solid #ca7206;
+          margin: 10px 0;
+          font-size: 16px;
+        }
+
+        input[type="file"] { display: none; }
+
+        button {
+          padding: 10px 20px;
+          background-color: #67c90b;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          margin: 10px;
+          transition: background-color 0.3s;
+        }
+
+        button:hover { background-color: #d6a309; }
+
+        #result {
+          margin-top: 20px;
+          font-size: 16px;
+          font-weight: bold;
+          color: #fff;
+        }
+
+        #loadingMessage {
+          display: none;
+          font-size: 16px;
+          color: orange;
+          margin-top: 10px;
+        }
+
+        #themeToggle {
+          position: fixed;
+          top: 12px;
+          right: 12px;
+          background: #ffad09;
+          border: none;
+          border-radius: 50%;
+          width: 36px;
+          height: 36px;
+          font-size: 18px;
+          cursor: pointer;
+          z-index: 9999;
+        }
+
+        .dark-mode {
+          background-color: #111 !important;
+          color: #f0f0f0 !important;
+        }
+
+        .dark-mode input,
+        .dark-mode button,
+        .dark-mode .search-container {
+          background-color: #222 !important;
+          color: #f0f0f0 !important;
+          border-color: #444 !important;
+        }
+
+        #menuDropdown {
+          position: fixed;
+          top: 15px;
+          left: 15px;
+          background: white;
+          color: black;
+          border-radius: 8px;
+          box-shadow: 0 0 10px orange;
+          padding: 10px;
+          display: none;
+          z-index: 1000;
+          max-height: 80vh;
+          overflow-y: auto;
+        }
+
+        #menuBtn {
+          position: fixed;
+          top: 15px;
+          left: 15px;
+          font-size: 24px;
+          background: none;
+          border: none;
+          color: white;
+          cursor: pointer;
+          z-index: 1001;
+        }
+
+        #menuDropdown ul {
+          list-style: none;
+          padding: 0;
+          max-height: 200px;
+          overflow-y: auto;
+        }
+
+        #menuDropdown li { margin-bottom: 6px; }
+
+        #menuDropdown button {
+          margin: 2px;
+          padding: 4px 8px;
+          font-size: 12px;
+        }
+
+        .close-menu {
+          margin-top: 10px;
+          background: red;
+        }
+    </style>
+</head>
+<body>
+
+<button id="themeToggle" title="Toggle Dark Mode">🌓</button>
+<button id="menuBtn">☰</button>
+
+<div id="menuDropdown">
+    <h4>Query History 📜</h4>
+    <ul id="queryHistoryList"></ul>
+<!--    <button onclick="deleteAll('history')">Delete All History</button>-->
+
+
+    <hr>
+    <h4>Favorites ❤️</h4>
+    <ul id="favoriteList"></ul>
+<!--    <button onclick="deleteAll('favorites')">Delete All Favorites</button>-->
+    <button class="close-menu" onclick="menuDropdown.style.display='none'">Back</button>
+</div>
+
+<h2>Search using Voice or Text</h2>
+<div class="search-container">
+    <button id="micBtn" class="icon-button" title="Start/Stop Mic">🎤</button>
+    <input type="text" id="queryInput" placeholder="Speak or type your question...">
+    <label for="fileInput" class="icon-button" title="Upload Audio">📁</label>
+    <input type="file" id="fileInput" accept="audio/*">
+    <button id="searchBtn">Search</button>
+</div>
+
+<h2>Search using image</h2>
+<div class="search-container">
+    <label for="ocrFileInput" class="icon-button" title="Upload Image for OCR">📁</label>
+    <input type="file" id="ocrFileInput" accept="image/*">
+    <input type="text" id="ocrQueryInput" placeholder="Text will appear here after OCR...">
+    <button id="ocrSearchBtn">Search OCR</button>
+</div>
+
+<form action="/view-marks" method="get">
+    <button type="submit">View Marks</button>
+</form>
+
+
+<div id="loadingMessage">⏳ Processing...</div>
+<p id="result"></p>
+
+<script>
+    const micBtn = document.getElementById('micBtn');
+    const fileInput = document.getElementById('fileInput');
+    const queryInput = document.getElementById('queryInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const result = document.getElementById('result');
+    const loadingMessage = document.getElementById('loadingMessage');
+    const menuBtn = document.getElementById('menuBtn');
+    const menuDropdown = document.getElementById('menuDropdown');
+    const ocrFileInput = document.getElementById('ocrFileInput');
+    const ocrQueryInput = document.getElementById('ocrQueryInput');
+    const ocrSearchBtn = document.getElementById('ocrSearchBtn');
+    let mediaRecorder, audioChunks = [], isRecording = false;
+
+    menuBtn.onclick = () => {
+      menuDropdown.style.display = menuDropdown.style.display === "block" ? "none" : "block";
+    };
+
+    micBtn.onclick = async () => {
+      result.innerText = '';
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            transcribeAudio(audioBlob);
+          };
+          mediaRecorder.start();
+          isRecording = true;
+          micBtn.textContent = "🛑";
+          result.innerText = '🎙️ Listening...';
+        } catch (err) {
+          result.innerText = '❌ Microphone error: ' + err.message;
+        }
+      } else {
+        mediaRecorder.stop();
+        isRecording = false;
+        micBtn.textContent = "🎤";
+        result.innerText = '';
+      }
+    };
+
+    fileInput.onchange = () => {
+      const file = fileInput.files[0];
+      if (file) {
+        result.innerText = '';
+        transcribeAudio(file);
+      }
+    };
+
+    async function transcribeAudio(audioFile) {
+      loadingMessage.style.display = 'block';
+      try {
+        const formData = new FormData();
+        formData.append("file", audioFile);
+        const response = await fetch("/api/speech-to-nlp", { method: "POST", body: formData });
+        const text = await response.text();
+        queryInput.value = text;
+        result.innerText = '✅ Transcription complete.';
+      } catch (err) {
+        result.innerText = '❌ Transcription error: ' + err.message;
+      } finally {
+        loadingMessage.style.display = 'none';
+      }
+    }
+
+    searchBtn.onclick = () => {
+      const query = queryInput.value.trim();
+      if (!query) return alert("Please enter a query.");
+      saveQuery(query, false);
+      loadingMessage.style.display = 'block';
+      fetch(`/api/search?query=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => result.innerText = data.result || "No result.")
+        .catch(err => result.innerText = "Error: " + err.message)
+        .finally(() => loadingMessage.style.display = 'none');
+    };
+
+    ocrFileInput.onchange = () => {
+      const file = ocrFileInput.files[0];
+      if (file) {
+        result.innerText = '';
+        performOCR(file);
+      }
+    };
+
+    async function performOCR(imageFile) {
+      loadingMessage.style.display = 'block';
+      try {
+        const formData = new FormData();
+        formData.append("file", imageFile);
+        const response = await fetch("/api/ocr", { method: "POST", body: formData });
+        const text = await response.text();
+        ocrQueryInput.value = text;
+        result.innerText = '✅ OCR complete.';
+      } catch (err) {
+        result.innerText = '❌ OCR error: ' + err.message;
+      } finally {
+        loadingMessage.style.display = 'none';
+      }
+    }
+
+    ocrSearchBtn.onclick = () => {
+      const query = ocrQueryInput.value.trim();
+      if (!query) return alert("Please upload an image and extract text first.");
+      saveQuery(query, false);
+      loadingMessage.style.display = 'block';
+      fetch(`/api/search?query=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => result.innerText = data.result || "No result.")
+        .catch(err => result.innerText = "Error: " + err.message)
+        .finally(() => loadingMessage.style.display = 'none');
+    };
+
+    function saveQuery(query, favorite = false) {
+      fetch(`/api/query/save?query=${encodeURIComponent(query)}&favorite=${favorite}`, {
+        method: "POST"
+      }).then(() => fetchHistory());
+    }
+
+    function fetchHistory() {
+      fetch('/api/query/history')
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById("queryHistoryList");
+          list.innerHTML = '';
+          data.forEach(item => {
+            list.innerHTML += `
+              <li>
+                <span style="cursor:pointer" onclick="searchFromHistory('${item.query}')">${item.query}</span>
+                <button onclick="toggleFavorite(${item.id})">${item.favorite ? "❤️" : "🤍"}</button>
+                <button onclick="deleteItem(${item.id}, 'history')">🗑️</button>
+
+              </li>`;
+          });
+        });
+
+      fetch('/api/query/favorites')
+        .then(res => res.json())
+        .then(data => {
+          const favList = document.getElementById("favoriteList");
+          favList.innerHTML = '';
+          data.forEach(item => {
+            favList.innerHTML += `
+              <li>
+                <span style="cursor:pointer" onclick="searchFromHistory('${item.query}')">${item.query}</span>
+                <button onclick="deleteItem(${item.id}, 'favorites')">🗑️</button>
+              </li>`;
+          });
+        });
+    }
+
+    function toggleFavorite(id) {
+      fetch(`/api/query/toggleFavorite/${id}`, { method: "POST" }).then(fetchHistory);
+    }
+
+    function deleteItem(id, type) {
+      fetch(`/api/query/delete/${id}`, { method: "DELETE" }).then(fetchHistory);
+    }
+
+    // ✅ Fixed deleteAll to refresh the menu after deletion
+    function deleteAll(type) {
+      fetch(`/api/query/deleteAll/${type}`, {
+        method: "DELETE"
+      })
+      .then(() => {
+        fetchHistory();
+        menuDropdown.style.display = "block";
+      })
+      .catch(err => console.error('Error deleting all:', err));
+    }
+
+    function searchFromHistory(query) {
+      queryInput.value = query;
+      searchBtn.click();
+    }
+
+    document.getElementById('themeToggle').onclick = () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    };
+
+    window.onload = () => {
+      if (localStorage.getItem("darkMode") === "true") {
+        document.body.classList.add("dark-mode");
+      }
+      fetchHistory();
+    };
+</script>
+
+</body>
+</html>

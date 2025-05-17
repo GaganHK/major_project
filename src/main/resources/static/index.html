@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Speech to NLP</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+
+    .search-container {
+      display: flex;
+      align-items: center;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      max-width: 600px;
+    }
+
+    .search-container input[type="text"] {
+      flex-grow: 1;
+      padding: 10px;
+      border: none;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .icon-button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #audioPlayback {
+      margin-top: 20px;
+    }
+
+    #resultText {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>🔎 Voice/Text Search Interface</h2>
+
+<div class="search-container">
+  <label class="icon-button" title="Upload Audio">
+    📁
+    <input type="file" id="fileInput" accept="audio/*" style="display:none;">
+  </label>
+
+  <input type="text" id="transcriptInput" placeholder="Speak or upload to transcribe..." readonly />
+
+  <button id="micBtn" class="icon-button" title="Start/Stop Mic">🎤</button>
+  <button id="searchBtn" class="icon-button" title="Search">🔍</button>
+</div>
+
+<audio id="audioPlayback" controls></audio>
+<p id="resultText"></p>
+
+<script>
+  let mediaRecorder;
+  let audioChunks = [];
+  let isRecording = false;
+
+  const fileInput = document.getElementById('fileInput');
+  const micBtn = document.getElementById('micBtn');
+  const searchBtn = document.getElementById('searchBtn');
+  const transcriptInput = document.getElementById('transcriptInput');
+  const resultText = document.getElementById('resultText');
+  const audioPlayback = document.getElementById('audioPlayback');
+
+  micBtn.onclick = async () => {
+    if (!isRecording) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = e => {
+          if (e.data.size > 0) audioChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          audioPlayback.src = audioUrl;
+          window.recordedAudio = audioBlob;
+          transcribeBlob(audioBlob);
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+        micBtn.textContent = '🛑';
+        resultText.innerText = '🎙️ Listening...';
+      } catch (err) {
+        resultText.innerText = '❌ Mic error: ' + err.message;
+      }
+    } else {
+      mediaRecorder.stop();
+      isRecording = false;
+      micBtn.textContent = '🎤';
+      resultText.innerText = '🛑 Recording stopped.';
+    }
+  };
+
+  fileInput.onchange = () => {
+    const file = fileInput.files[0];
+    if (file) {
+      const audioUrl = URL.createObjectURL(file);
+      audioPlayback.src = audioUrl;
+      transcribeBlob(file);
+    }
+  };
+
+  async function transcribeBlob(blob) {
+    const formData = new FormData();
+    formData.append('file', blob, 'audio.webm');
+
+    resultText.innerText = "⬆️ Transcribing...";
+
+    try {
+      const response = await fetch('/api/speech-to-nlp', {
+        method: 'POST',
+        body: formData
+      });
+
+      const text = await response.text();
+      transcriptInput.value = text;
+      resultText.innerText = '✅ Transcription ready!';
+    } catch (err) {
+      resultText.innerText = '❌ Transcription error: ' + err.message;
+    }
+  }
+
+  searchBtn.onclick = () => {
+    const query = transcriptInput.value.trim();
+    if (query) {
+      // For now, just show the text. You can integrate NLP/database call here later.
+      resultText.innerText = "🔍 You searched for: " + query;
+    } else {
+      resultText.innerText = "⚠️ Nothing to search.";
+    }
+  };
+</script>
+</body>
+</html>

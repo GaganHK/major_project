@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Edit Student</title>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 150px;
+            text-align: center;
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+            background: transparent;
+            margin: 0;
+        }
+
+        #animated-bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+
+        .top-heading {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            z-index: 10;
+        }
+
+       .admin-image {
+            border: 2px solid #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .admin-image-top {
+            display: block;
+            margin: 20px auto;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+        }
+
+        input {
+            margin: 10px 0;
+            padding: 15px;
+            font-size: 16px;
+            width: 250px;
+            border: 1px solid #0a0a0a;
+            border-radius: 5px;
+            background-color: #371414;
+            color: #dcddee;
+            
+        }
+
+        button {
+            margin: 20px;
+            padding: 12px 25px;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #2b85ec;
+            color: #fff;
+            border: 2px solid #0f0f0f;
+            border-radius: 5px;
+            transition: background-color 0.5s ease, transform 0.5s ease;
+        }
+
+        button:hover {
+            background-color: #2d9231;
+            transform: scale(1.05);
+        }
+
+        .floating-image-left {
+            position: fixed;
+            top: 50%;
+            left: 90px;
+            transform: translateY(-50%);
+            width: 460px;
+            height: 330px;
+            z-index: 2;
+            opacity: 1.0;
+            animation: floatLeftImage 8s ease-in-out infinite;
+        }
+
+        @keyframes floatLeftImage {
+            0% { transform: translateY(-50%) translateX(0); }
+            50% { transform: translateY(-60%) translateX(10px); }
+            100% { transform: translateY(-50%) translateX(0); }
+        }
+
+        .dark-mode {
+            background-color: #282323 !important;
+            color: #f0f0f0 !important;
+        }
+
+        .dark-mode input,
+        .dark-mode button {
+            background-color: #dcddee !important;
+            color: #0c0c0c !important;
+            border-color: #0b0b0b !important;
+        }
+
+        .dark-mode button {
+            background-color: #363d7b !important;
+            color: #f1ecec !important;
+        }
+
+        .dark-mode button:hover {
+            background-color: #0699ee !important;
+        }
+
+        .dark-mode .top-heading {
+            color: #f0f0f0 !important;
+        }
+         .dark-mode .admin-image {
+            border-color: #f0f0f0;
+            filter: brightness(0.9);
+        }
+
+        .quote-box {
+            position: fixed;
+            top: 50%;
+            right: 30px;
+            transform: translateY(-50%);
+            width: 300px;
+            background: rgba(7, 203, 229, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            font-style: italic;
+            font-size: 16px;
+            z-index: 2;
+        }
+
+        .dark-mode .quote-box {
+            background: rgba(40, 40, 40, 0.9);
+            color: #f0f0f0;
+        }
+
+        @media (max-width: 768px) {
+            .floating-image-left,
+            .quote-box {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="animated-bg-canvas"></canvas>
+<img src="/images/edit-student details.png" alt="Floating Image" class="floating-image-left" />
+
+<h1 class="top-heading">ReadMorph</h1>
+
+<!-- Student Icon -->
+<img src="/images/edit-student profile.png" alt="Student Icon" class="admin-image admin-image-top" />
+
+<h2>EDIT STUDENT DETAILS</h2>
+
+<!-- Dark Mode Toggle Button -->
+<button id="themeToggle" title="Toggle Dark Mode">🌓</button>
+
+<form th:action="@{/admin/edit-student}" method="post">
+    <input type="text" name="usn" placeholder="Enter USN" required />
+    <br/>
+    <button type="submit">Search</button>
+</form>
+
+<p th:if="${error}" th:text="${error}" style="color:red;"></p>
+
+<!-- Rotating Quote -->
+<div class="quote-box" id="quoteBox">Loading quote...</div>
+
+<script>
+    // Dark Mode Toggle
+    const toggleBtn = document.getElementById('themeToggle');
+    toggleBtn.style.position = 'fixed';
+    toggleBtn.style.top = '12px';
+    toggleBtn.style.right = '12px';
+    toggleBtn.style.background = '#ffad09';
+    toggleBtn.style.border = 'none';
+    toggleBtn.style.borderRadius = '50%';
+    toggleBtn.style.width = '36px';
+    toggleBtn.style.height = '36px';
+    toggleBtn.style.fontSize = '18px';
+    toggleBtn.style.cursor = 'pointer';
+    toggleBtn.style.zIndex = '9999';
+
+    toggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        try {
+            localStorage.setItem('darkMode', isDarkMode);
+        } catch (e) {
+            console.warn('localStorage not available');
+        }
+        toggleBtn.textContent = isDarkMode ? '☀️' : '🌙';
+    });
+
+    window.onload = () => {
+        let isDarkMode = false;
+        try {
+            isDarkMode = localStorage.getItem('darkMode') === 'true';
+        } catch (e) {
+            console.warn('localStorage unavailable');
+        }
+        document.body.classList.toggle('dark-mode', isDarkMode);
+        toggleBtn.textContent = isDarkMode ? '☀️' : '🌙';
+    };
+
+    // Background Animation
+    const canvas = document.getElementById("animated-bg-canvas");
+    const ctx = canvas.getContext("2d");
+    let width, height;
+
+    function resizeCanvas() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    const capImg = new Image();
+    capImg.src = "https://img.icons8.com/ios-filled/50/000000/graduation-cap.png";
+
+    const certImg = new Image();
+    certImg.src = "https://img.icons8.com/ios-filled/50/4caf50/diploma.png";
+
+    const caps = [];
+    const certificates = [];
+    let assetsLoaded = 0;
+
+    function checkAllLoaded() {
+        assetsLoaded++;
+        if (assetsLoaded === 2) {
+            for (let i = 0; i < 30; i++) {
+                caps.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: 24 + Math.random() * 30,
+                    dx: (Math.random() - 0.5) * 0.5,
+                    dy: (Math.random() - 0.5) * 0.5,
+                    rotation: Math.random() * Math.PI * 2,
+                    dr: (Math.random() - 0.5) * 0.01
+                });
+            }
+
+            for (let i = 0; i < 20; i++) {
+                certificates.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: 24 + Math.random() * 30,
+                    dx: (Math.random() - 0.5) * 0.6,
+                    dy: (Math.random() - 0.5) * 0.6,
+                    rotation: Math.random() * Math.PI * 2,
+                    dr: (Math.random() - 0.5) * 0.015
+                });
+            }
+
+            animate();
+        }
+    }
+
+    capImg.onload = checkAllLoaded;
+    certImg.onload = checkAllLoaded;
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        caps.forEach(cap => {
+            cap.x += cap.dx;
+            cap.y += cap.dy;
+            cap.rotation += cap.dr;
+            if (cap.x < -50 || cap.x > width + 50) cap.dx *= -1;
+            if (cap.y < -50 || cap.y > height + 50) cap.dy *= -1;
+            ctx.save();
+            ctx.translate(cap.x, cap.y);
+            ctx.rotate(cap.rotation);
+            ctx.drawImage(capImg, -cap.size / 2, -cap.size / 2, cap.size, cap.size);
+            ctx.restore();
+        });
+
+        certificates.forEach(cert => {
+            cert.x += cert.dx;
+            cert.y += cert.dy;
+            cert.rotation += cert.dr;
+            if (cert.x < -50 || cert.x > width + 50) cert.dx *= -1;
+            if (cert.y < -50 || cert.y > height + 50) cert.dy *= -1;
+            ctx.save();
+            ctx.translate(cert.x, cert.y);
+            ctx.rotate(cert.rotation);
+            ctx.drawImage(certImg, -cert.size / 2, -cert.size / 2, cert.size, cert.size);
+            ctx.restore();
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    // Rotating Quotes
+    const quotes = [
+        "Push yourself, because no one else is going to do it for you.",
+        "The beautiful thing about learning is that no one can take it away from you. — B.B. King",
+        "Success is not the key to happiness. Happiness is the key to success.",
+        "Believe you can and you're halfway there. — Theodore Roosevelt",
+        "Education is the most powerful weapon you can use to change the world. — Nelson Mandela"
+    ];
+    let quoteIndex = 0;
+    const quoteBox = document.getElementById("quoteBox");
+
+    function updateQuote() {
+        quoteBox.textContent = quotes[quoteIndex];
+        quoteIndex = (quoteIndex + 1) % quotes.length;
+    }
+
+    updateQuote();
+    setInterval(updateQuote, 6000);
+</script>
+
+</body>
+</html>

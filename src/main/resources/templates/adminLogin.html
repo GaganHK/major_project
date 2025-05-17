@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin Login</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+<canvas id="animated-bg-canvas"></canvas>
+
+<!-- ✅ Floating Image on Left Side -->
+<img src="/images/Admin-login.png" alt="Floating Left Image" class="floating-image-left" />
+
+<h1 class="top-heading">ReadMorph</h1>
+<img src="/images/Admin-Profile.png" alt="Admin Icon Top" class="admin-image admin-image-top" />
+<h2>ADMIN LOGIN</h2>
+
+<!-- ✅ Theme Toggle -->
+<button id="themeToggle" title="">🌓</button>
+
+<form th:action="@{/admin/login}" method="post">
+    <input type="text" name="email" placeholder="Email" required /><br/>
+    <input type="password" name="password" placeholder="Password" required /><br/>
+    <button type="submit">Login</button>
+</form>
+<!-- Quote Box (Right Side) -->
+<div class="quote-box" id="quoteBox">
+    "Smart data. Smarter decisions. ReadMorph."
+</div>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        padding: 100px;
+        text-align: center;
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+        background: transparent;
+    }
+
+    #animated-bg-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+    }
+
+    .top-heading {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+        z-index: 10;
+    }
+
+    input {
+        margin: 10px 0;
+        padding: 15px;
+        font-size: 16px;
+        width: 200px;
+        border: 1px solid #c37979;
+        border-radius: 5px;
+    }
+
+    button {
+        margin: 15px;
+        padding: 12px 25px;
+        font-size: 26px;
+        cursor: pointer;
+        background-color: #2b85ec;
+        color: #0c0c0c;
+        border: 2px solid #0f0f0f;
+        border-radius: 5px;
+        transition: background-color 0.5s ease, transform 0.5s ease;
+    }
+
+    button:hover {
+        background-color: #2d9231;
+        transform: scale(1.05);
+    }
+
+    .admin-image {
+        border: 2px solid #333;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .admin-image-top {
+        display: block;
+        margin: 20px auto;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+    }
+
+    .floating-image-left {
+        position: fixed;
+        top: 50%;
+        left: 30px;
+        transform: translateY(-50%);
+        width: 600px;
+        height: 300px;
+        z-index: 2;
+        opacity: 1.0;
+        animation: floatLeftImage 8s ease-in-out infinite;
+    }
+    
+
+    @keyframes floatLeftImage {
+        0% { transform: translateY(-50%) translateX(0); }
+        50% { transform: translateY(-60%) translateX(10px); }
+        100% { transform: translateY(-50%) translateX(0); }
+    }
+
+     /* Quote box (Right side) */
+    .quote-box {
+        position: fixed;
+        top: 50%;
+        right: 30px;
+        transform: translateY(-50%);
+        width: 260px;
+        font-style: italic;
+        font-size: 16px;
+        color: #444;
+        background: rgba(7, 125, 184, 0.7);
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 3;
+    }
+
+   .dark-mode {
+        background-color: #251313 !important;
+        color: #f0f0f0 !important;
+    }
+    .dark-mode input,
+    .dark-mode button,
+    .dark-mode .search-container,
+    .dark-mode .container {
+        background-color: #dcddee !important;
+        color: #f0f0f0 !important;
+        border-color: #0b0b0b !important;
+    }
+
+    .dark-mode .admin-image {
+        border-color: #f0f0f0;
+        filter: brightness(0.9);
+    }
+
+    .dark-mode button {
+        background-color: #363d7b !important;
+        color: #f1ecec !important;
+    }
+
+    .dark-mode button:hover {
+        background-color: #0699ee !important;
+    }
+
+    .dark-mode .top-heading {
+        color: #f0f0f0 !important;
+    }
+
+     .dark-mode .quote-box {
+        background: rgba(60, 60, 60, 0.8);
+        color: #f0f0f0;
+    }
+
+    @media (max-width: 768px) {
+        .floating-image-left {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+    // Theme Toggle
+    const toggleBtn = document.getElementById('themeToggle');
+    toggleBtn.style.position = 'fixed';
+    toggleBtn.style.top = '12px';
+    toggleBtn.style.right = '12px';
+    toggleBtn.style.background = '#ffad09';
+    toggleBtn.style.border = 'none';
+    toggleBtn.style.borderRadius = '50%';
+    toggleBtn.style.width = '36px';
+    toggleBtn.style.height = '36px';
+    toggleBtn.style.fontSize = '18px';
+    toggleBtn.style.cursor = 'pointer';
+    toggleBtn.style.zIndex = '9999';
+
+    toggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        try {
+            localStorage.setItem('darkMode', isDarkMode);
+        } catch (e) {
+            console.warn('localStorage not available');
+        }
+        toggleBtn.textContent = isDarkMode ? '☀️' : '🌙';
+        document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    });
+
+    window.onload = () => {
+        let isDarkMode = false;
+        try {
+            isDarkMode = localStorage.getItem('darkMode') === 'true';
+        } catch (e) {
+            console.warn('localStorage unavailable');
+        }
+        document.body.classList.toggle('dark-mode', isDarkMode);
+        toggleBtn.textContent = isDarkMode ? '☀️' : '🌙';
+        document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    };
+
+     // Rotating quotes
+    const quotes = [
+        '"Smart data. Smarter decisions. ReadMorph."',
+        '"Let the text speak — OCR with NLP."',
+        '"Admin insights just a click away!"',
+        '"Simplify. Analyze. ReadMorph."'
+    ];
+    let currentQuote = 0;
+    setInterval(() => {
+        currentQuote = (currentQuote + 1) % quotes.length;
+        document.getElementById("quoteBox").textContent = quotes[currentQuote];
+    }, 5000);
+
+    // Floating Circles Animation
+    const canvas = document.getElementById("animated-bg-canvas");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    const circles = Array.from({ length: 40 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 15 + 5,
+        dx: (Math.random() - 0.5) * 0.7,
+        dy: (Math.random() - 0.5) * 0.7
+    }));
+
+    function animateCircles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(100, 180, 255, 0.3)";
+        circles.forEach(c => {
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+            ctx.fill();
+            c.x += c.dx;
+            c.y += c.dy;
+            if (c.x < 0 || c.x > canvas.width) c.dx *= -1;
+            if (c.y < 0 || c.y > canvas.height) c.dy *= -1;
+        });
+        requestAnimationFrame(animateCircles);
+    }
+
+    animateCircles();
+</script>
+</body>
+</html>

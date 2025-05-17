@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <title>Student Registration Form</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+            width: 90%;
+            max-width: 900px; /* Increased to accommodate grid */
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+        
+
+        h1 {
+            color: #28a745;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .top-heading {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #f7fbfb;
+            margin: 0;
+            z-index: 10;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #f6f8f5;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 8px;
+        
+        }
+
+        .form-control::placeholder {
+            color:#fff;
+        }
+
+        label {
+            font-weight: bold;
+            color: #f7fbfb;
+            margin-bottom: 5px;
+        }
+
+        .form-check-label {
+            color: #f7fbfb;
+        }
+
+        .gender-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-success, .update-marks-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 16px;
+            grid-column: 1 / -1; /* Span full width */
+        }
+
+        .btn-success:hover, .update-marks-btn:hover {
+            background: #dccb07;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(93, 82, 82, 0.3);
+        }
+
+        .update-marks-btn {
+            position: relative;
+            margin-top: 20px;
+            width: auto;
+        }
+
+        .alert-danger {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            background: rgba(220, 53, 69, 0.8);
+            border: none;
+            color: #fff;
+            grid-column: 1 / -1;
+        }
+
+        .search-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            grid-column: 1 / -1;
+        }
+
+        .search-btn:hover {
+            background: #dccb07;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(93, 82, 82, 0.3);
+        }
+
+        /* .floating-image-left {
+            position: fixed;
+            top: 50%;
+            left: 30px;
+            transform: translateY(-50%);
+            width: 350px;
+            height: 250px;
+            z-index: 3;
+            opacity: 1.0;
+            animation: floatLeftImage 8s ease-in-out infinite;
+        }
+
+        @keyframes floatLeftImage {
+            0% { transform: translateY(-50%) translateX(0); }
+            50% { transform: translateY(-60%) translateX(10px); }
+            100% { transform: translateY(-50%) translateX(0); }
+        } */
+
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .floating-image-left {
+                width: 200px;
+                height: 150px;
+                left: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .top-heading {
+                font-size: 22px;
+                top: 10px;
+                left: 10px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr; /* Single column on small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Image on Left Side -->
+    <!-- <img src="images/registrationn.webp" alt="Floating Student Image" class="floating-image-left" /> -->
+
+    <h1 class="top-heading">ReadMorph</h1>
+
+    <div class="background-animation">
+        <canvas id="nlpCanvas"></canvas>
+    </div>
+
+    <div class="container">
+        <h1>Student Registration Form</h1>
+        <form th:action="@{/registerUser}" th:object="${student}" method="post" class="form-grid">
+            <div class="form-group">
+                <label for="usn">USN</label>
+                <input type="text" th:field="*{usn}" class="form-control" id="usn" placeholder="Enter USN" aria-label="USN" required>
+            </div>
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" th:field="*{name}" class="form-control" id="name" placeholder="Enter Student Name" aria-label="Name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" th:field="*{email}" class="form-control" id="email" placeholder="Enter Email address" aria-label="Email" required>
+            </div>
+            <div class="form-group">
+                <label for="mobile">Mobile No.</label>
+                <input type="number" th:field="*{mobile}" class="form-control" id="mobile" placeholder="Enter Mobile No." aria-label="Mobile Number" required>
+            </div>
+            <div class="form-group">
+                <label for="fathername">Father Name</label>
+                <input type="text" th:field="*{fathername}" class="form-control" id="fathername" placeholder="Enter Father Name" aria-label="Father Name" required>
+            </div>
+            <div class="form-group">
+                <label>Gender</label>
+                <div class="gender-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" th:field="*{gender}" id="male" value="Male" required>
+                        <label class="form-check-label" for="male">Male</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" th:field="*{gender}" id="female" value="Female" required>
+                        <label class="form-check-label" for="female">Female</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="branch">Branch</label>
+                <select th:field="*{branch}" class="form-control" id="branch" aria-label="Branch" required>
+                    <option value="CS">Computer Science</option>
+                    <option value="AIML">AIML</option>
+                    <option value="CIVIL">Civil</option>
+                    <option value="MECH">Mechanical</option>
+                    <option value="EC">Electronics</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="semester">Semester</label>
+                <select th:field="*{semester}" class="form-control" id="semester" aria-label="Semester" required>
+                    <option value="1">1st Sem</option>
+                    <option value="2">2nd Sem</option>
+                    <option value="3">3rd Sem</option>
+                    <option value="4">4th Sem</option>
+                    <option value="5">5th Sem</option>
+                    <option value="6">6th Sem</option>
+                    <option value="7">7th Sem</option>
+                    <option value="8">8th Sem</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-success">Register</button>
+        </form>
+        <form action="/update_marks" method="get">
+            <button type="submit" class="update-marks-btn">Update Marks</button>
+        </form>
+        <div th:if="${errorMessage}" class="alert alert-danger">
+            <p th:text="${errorMessage}"></p>
+        </div>
+        <a href="/searchPage" class="search-btn">Go to Search Page</a>
+    </div>
+
+    <script>
+        // Canvas animation for student registration theme
+        const canvas = document.getElementById('nlpCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 100;
+        const words = ['Student', 'Register', 'Education', 'USN', 'Branch', 'Semester', 'AI'];
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 15 + 5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.text = words[Math.floor(Math.random() * words.length)];
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(40, 167, 69, 0.5)';
+                ctx.font = `${this.size}px Arial`;
+                ctx.fillText(this.text, this.x, this.y);
+            }
+        }
+
+        function init() {
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        init();
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>

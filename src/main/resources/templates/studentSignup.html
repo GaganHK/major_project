@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Student Sign Up</title>
+    <style>
+         body {
+        font-family: Arial, sans-serif;
+        padding: 60px;
+        text-align: center;
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+        background: transparent;
+    }
+
+
+        h1 {
+            color: #030508;
+        }
+        form {
+    display: block;
+    height: 300px;
+    width: 400px; /* 👈 You can adjust this width as needed */
+    margin: 20px auto; /* 👈 Centers the form */
+    text-align: center;
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #000000d4;
+    border: 2px solid #007bff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional: adds a subtle shadow */
+}
+
+        .top-heading {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+        z-index: 10;
+    }
+    .admin-image {
+            border: 2px solid #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .admin-image-top {
+            display: block;
+            margin: 20px auto;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+        }
+
+        input {
+        margin: 10px 0;
+        padding: 15px;
+        font-size: 16px;
+        width: 200px;
+        border: 1px solid #c37979;
+        border-radius: 5px;
+    }
+
+        button {
+        margin: 15px;
+        padding: 12px 25px;
+        font-size: 26px;
+        cursor: pointer;
+        background-color: #2b85ec;
+        color: #0c0c0c;
+        border: 2px solid #0f0f0f;
+        border-radius: 5px;
+        transition: background-color 0.5s ease, transform 0.5s ease;
+    }
+
+         button:hover {
+        background-color: #2d9231;
+        transform: scale(1.05);
+    }
+
+        .dark-mode {
+        background-color: #251313 !important;
+        color: #f0f0f0 !important;
+    }
+
+    .dark-mode input,
+    .dark-mode button {
+        background-color: #dcddee !important;
+        color: #f0f0f0 !important;
+        border-color: #0b0b0b !important;
+    }
+     .dark-mode .admin-image {
+            border-color: #f0f0f0;
+            filter: brightness(0.9);
+        }
+        .dark-mode h2{
+            color: #f3f4f7;
+            margin-bottom: 40px;
+        }
+
+        .dark-mode a {
+            background-color: #333 !important;
+            color: #f0f0f0 !important;
+        }
+        .dark-mode button {
+        background-color: #363d7b !important;
+        color: #f1ecec !important;
+    }
+
+    .dark-mode button:hover {
+        background-color: #0699ee !important;
+    }
+
+    .dark-mode .top-heading {
+        color: #f0f0f0 !important;
+    }
+    .quote-box {
+            position: fixed;
+            top: 50%;
+            right: 30px;
+            transform: translateY(-50%);
+            width: 300px;
+            background: rgba(7, 203, 229, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            font-style: italic;
+            font-size: 16px;
+            z-index: 2;
+        }
+
+        .dark-mode .quote-box {
+            background: rgba(40, 40, 40, 0.9);
+            color: #f0f0f0;
+        }
+
+
+       .floating-image-left {
+        position: fixed;
+        top: 50%;
+        left: 50px;
+        transform: translateY(-50%);
+        width: 450px;
+        height: 400px;
+        z-index: 2;
+        opacity: 1.0;
+        animation: floatLeftImage 8s ease-in-out infinite;
+    }
+
+
+        @keyframes floatLeftImage {
+            0% { transform: translateY(-50%) translateX(0); }
+            50% { transform: translateY(-60%) translateX(10px); }
+            100% { transform: translateY(-50%) translateX(0); }
+        }
+
+        /* Particle system with engineering symbols */
+        .particle-system {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-size: contain;
+            animation: particleMovement 4s infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes particleMovement {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            25% {
+                transform: translate(150px, 100px) scale(1.5);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translate(300px, 200px) scale(0.8);
+                opacity: 0.6;
+            }
+            75% {
+                transform: translate(400px, 50px) scale(1.2);
+                opacity: 0.4;
+            }
+            100% {
+                transform: translate(500px, 200px) scale(1);
+                opacity: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <h1 class="top-heading">ReadMorph</h1>
+    <img src="/images/student-signup.webp" alt="Floating Left Image" class="floating-image-left" />
+     <img src="/images/edit-student profile.png" alt="Student Icon" class="admin-image admin-image-top" />
+    <h2>STUDENT SIGN UP</h2>
+
+    <button id="themeToggle" title="">🌓</button>
+
+    <form th:action="@{/student/signup}" method="post">
+        <input type="text" id="usn" name="usn" placeholder="USN" required /><br/>
+        <input type="email" name="email" placeholder="Email" required /><br/>
+
+        <!-- ✅ Password field with client-side validation -->
+        <input type="password" id="password" name="password"
+               placeholder="Password" required oninput="validatePassword()" /><br/>
+        <div id="passwordHelp" style="color: red; font-size: 14px;"></div>
+
+        <button type="submit">Sign Up</button>
+        <div th:if="${error}" style="color:red;">
+            <p th:text="${error}"></p>
+        </div>
+    </form>
+
+    <!-- Particle System Container -->
+    <div class="particle-system">
+        <!-- Injecting particles dynamically using JS -->
+    </div>
+    <!-- Rotating Quote -->
+<div class="quote-box" id="quoteBox">Loading quote...</div>
+
+
+    <script>
+        // Dark-mode toggle functionality
+        const toggleBtn = document.getElementById('themeToggle');
+        toggleBtn.style.position = 'fixed';
+        toggleBtn.style.top = '12px';
+        toggleBtn.style.right = '12px';
+        toggleBtn.style.background = '#ffad09';
+        toggleBtn.style.border = 'none';
+        toggleBtn.style.borderRadius = '50%';
+        toggleBtn.style.width = '36px';
+        toggleBtn.style.height = '36px';
+        toggleBtn.style.fontSize = '18px';
+        toggleBtn.style.cursor = 'pointer';
+        toggleBtn.style.zIndex = '9999';
+
+        toggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        try {
+            localStorage.setItem('darkMode', isDarkMode);
+        } catch (e) {
+            console.warn('localStorage not available');
+        }
+        toggleBtn.textContent = isDarkMode ? '☀️' : '🌙';
+    });
+
+    window.onload = () => {
+        let isDarkMode = false;
+        try {
+            isDarkMode = localStorage.getItem('darkMode') === 'true';
+        } catch (e) {
+            console.warn('localStorage unavailable');
+        }
+        document.body.classList.toggle('dark-mode', isDarkMode);
+        toggleBtn.textContent = isDarkMode ? '☀️' : '🌙';
+    };
+        // Password validation function
+        function validatePassword() {
+            const pwd = document.getElementById('password').value;
+            const msg = document.getElementById('passwordHelp');
+            const rules = [
+                { regex: /[A-Z]/, msg: "one uppercase letter" },
+                { regex: /[a-z]/, msg: "one lowercase letter" },
+                { regex: /[0-9]/, msg: "one number" },
+                { regex: /[^A-Za-z0-9]/, msg: "one special character" }
+            ];
+            const missing = rules.filter(r => !r.regex.test(pwd)).map(r => r.msg);
+            msg.textContent = missing.length
+                ? "Password must include at least " + missing.join(", ") + "."
+                : "";
+        }
+
+        // Particle generation script (with symbols)
+        function generateParticles() {
+            const particleContainer = document.querySelector('.particle-system');
+            const symbols = [
+                '🤖', // AIML
+                '⚙️', // Mechanical
+                '🏗️', // Civil
+                '🖥️', // OS
+                '💻', // OS
+                '🔧', // Tools (mechanical)
+                '📡', // Communication (AIML)
+                '⚡', // Electrical/energy
+                '🔌' // Power systems
+            ];
+
+            for (let i = 0; i < 40; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                particle.textContent = randomSymbol;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDuration = `${3 + Math.random() * 5}s`;
+                particle.style.fontSize = `${20 + Math.random() * 30}px`;
+                particleContainer.appendChild(particle);
+            }
+        }
+
+        // Initialize particles when the page loads
+        window.onload = generateParticles;
+
+         // Rotating Quotes
+    const quotes = [
+        "Push yourself, because no one else is going to do it for you.",
+        "The beautiful thing about learning is that no one can take it away from you. — B.B. King",
+        "Success is not the key to happiness. Happiness is the key to success.",
+        "Believe you can and you're halfway there. — Theodore Roosevelt",
+        "Education is the most powerful weapon you can use to change the world. — Nelson Mandela"
+    ];
+    let quoteIndex = 0;
+    const quoteBox = document.getElementById("quoteBox");
+
+    function updateQuote() {
+        quoteBox.textContent = quotes[quoteIndex];
+        quoteIndex = (quoteIndex + 1) % quotes.length;
+    }
+
+    updateQuote();
+    setInterval(updateQuote, 6000);
+    </script>
+</body>
+</html>

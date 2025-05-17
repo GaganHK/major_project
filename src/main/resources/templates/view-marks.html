@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>View Marks</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background-color: #f0f0f0; }
+        h2 { color: #333; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
+        th { background-color: #333; color: white; }
+        .search-form { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<!-- ✅ Admin-only search bar using 'role' from controller -->
+<div th:if="${role} != 'student'" class="search-form">
+    <form th:action="@{/view-marks}" method="get">
+        <label for="usn">Enter USN:</label>
+        <input type="text" id="usn" name="usn" required />
+        <button type="submit">Search</button>
+    </form>
+</div>
+
+<!-- Show heading -->
+<h2 th:if="${usn != null}" th:text="'Results for: ' + ${usn}"></h2>
+<h2 th:if="${studentName != null}" th:text="'Student Name: ' + ${studentName}"></h2>
+
+<!-- Show error message -->
+<div th:if="${error}">
+    <p th:text="${error}" style="color:red;"></p>
+</div>
+
+<!-- Show results table if results exist -->
+<div th:if="${results != null}">
+    <table>
+        <thead>
+        <tr>
+            <th>Semester</th>
+            <th>Total Scored</th>
+            <th>Total Max</th>
+            <th>Percentage</th>
+            <th>CGPA</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="result : ${results}">
+            <td th:text="${result.semester}">1</td>
+            <td th:text="${result.totalScored}">500</td>
+            <td th:text="${result.totalMax}">600</td>
+            <td th:text="${result.percentage}">83.33</td>
+            <td th:text="${result.cgpa}">8.5</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

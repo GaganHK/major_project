@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Result</title></head>
+<body>
+
+<h2>Results for <span th:text="${marksForm.email}"></span></h2>
+<p>Semester: <span th:text="${marksForm.semester}"></span></p>
+<p>Total Scored: <span th:text="${marksForm.totalScored}"></span></p>
+<p>Total Max: <span th:text="${marksForm.totalMax}"></span></p>
+<p>Percentage: <span th:text="${marksForm.percentage}"></span>%</p>
+<p>CGPA: <span th:text="${marksForm.cgpa}"></span></p>
+
+<h3>Subjects:</h3>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Subject Name</th>
+        <th>Max Marks</th>
+        <th>Scored</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="sub : ${marksForm.subjects}">
+        <td th:text="${sub.subjectName}">Subject Name</td>
+        <td th:text="${sub.max}">Max Marks</td>
+        <td th:text="${sub.scored}">Scored Marks</td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- Form to send email with hidden fields -->
+<form th:action="@{/sendResultEmail}" method="post" th:object="${marksForm}">
+    <input type="email" th:field="*{email}" required />
+
+    <input type="hidden" th:field="*{semester}" />
+    <input type="hidden" th:field="*{totalScored}" />
+    <input type="hidden" th:field="*{totalMax}" />
+    <input type="hidden" th:field="*{percentage}" />
+    <input type="hidden" th:field="*{cgpa}" />
+
+    <div th:each="sub, iterStat : *{subjects}">
+        <input type="hidden" th:field="*{subjects[__${iterStat.index}__].subjectName}" />
+        <input type="hidden" th:field="*{subjects[__${iterStat.index}__].external}" />
+        <input type="hidden" th:field="*{subjects[__${iterStat.index}__].internal}" />
+        <input type="hidden" th:field="*{subjects[__${iterStat.index}__].max}" />
+        <input type="hidden" th:field="*{subjects[__${iterStat.index}__].scored}" />
+    </div>
+
+    <button type="submit">Send Result by Email</button>
+</form>
+
+<p th:if="${message}" th:text="${message}" style="color:green"></p>
+
+</body>
+</html>

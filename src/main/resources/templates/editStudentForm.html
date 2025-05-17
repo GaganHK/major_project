@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Edit Student</title>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+            background: transparent;
+            margin: 0;
+        }
+
+        #animated-bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+
+        .top-heading {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #121111;
+            margin: 0;
+            z-index: 10;
+        }
+
+        input, select {
+            margin: 10px 0;
+            padding: 15px;
+            font-size: 16px;
+            width: 100%;
+            border: 1px solid #0a0a0a;
+            border-radius: 5px;
+            background-color: #371414;
+            color: #dcddee;
+        }
+
+        button {
+            margin: 20px auto;
+            padding: 12px 25px;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #2b85ec;
+            color: #fff;
+            border: 2px solid #0f0f0f;
+            border-radius: 5px;
+            transition: background-color 0.5s ease, transform 0.5s ease;
+            display: block;
+        }
+
+        button:hover {
+            background-color: #2d9231;
+            transform: scale(1.05);
+        }
+
+        .admin-image-top {
+            display: block;
+            margin: 20px auto;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .floating-image-left {
+            position: fixed;
+            top: 50%;
+            left: 70px;
+            transform: translateY(-50%);
+            width: 350px;
+            height: 300px;
+            z-index: 2;
+            opacity: 1.0;
+            animation: floatLeftImage 8s ease-in-out infinite;
+        }
+
+        @keyframes floatLeftImage {
+            0%, 100% { transform: translateY(-50%) translateX(0); }
+            50% { transform: translateY(-60%) translateX(10px); }
+        }
+
+        .form-wrapper {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 65px;
+            max-width: 700px;
+            margin: auto;
+        }
+
+        .form-column {
+            flex: 1 1 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .quote-box {
+            position: fixed;
+            top: 50%;
+            right: 30px;
+            transform: translateY(-50%);
+            width: 300px;
+            background: rgba(7, 203, 229, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            font-style: italic;
+            font-size: 16px;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="animated-bg-canvas"></canvas>
+<img src="/images/edit-student.png" alt="Floating Image" class="floating-image-left" />
+
+<h1 class="top-heading">ReadMorph</h1>
+<img src="/images/edit-student profile.png" alt="Student Icon" class="admin-image-top" />
+<h2>EDIT STUDENT</h2>
+
+<form th:action="@{/admin/update-student}" th:object="${student}" method="post">
+    <div class="form-wrapper">
+        <div class="form-column">
+            <input type="hidden" name="usn" th:value="${student.usn}" />
+            <input type="text" name="name" th:field="*{name}" placeholder="Name" required />
+            <input type="email" name="email" th:field="*{email}" placeholder="Email" required />
+            <input type="text" name="mobile" th:field="*{mobile}" placeholder="Mobile" required />
+        </div>
+
+        <div class="form-column">
+            <input type="text" name="fathername" th:field="*{fathername}" placeholder="Father Name" required />
+
+            <select name="gender" th:field="*{gender}" required>
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <select name="branch" th:field="*{branch}" required>
+                <option value="">Select Branch</option>
+                <option value="CS">Computer Science</option>
+                <option value="AIML">AIML</option>
+                <option value="CIVIL">Civil</option>
+                <option value="MECH">Mechanical</option>
+                <option value="EC">Electronics</option>
+            </select>
+
+            <select name="semester" th:field="*{semester}" required>
+                <option value="">Select Semester</option>
+                <option value="1">1st Sem</option>
+                <option value="2">2nd Sem</option>
+                <option value="3">3rd Sem</option>
+                <option value="4">4th Sem</option>
+                <option value="5">5th Sem</option>
+                <option value="6">6th Sem</option>
+                <option value="7">7th Sem</option>
+                <option value="8">8th Sem</option>
+            </select>
+        </div>
+    </div>
+
+    <button type="submit">Update</button>
+</form>
+
+<div class="quote-box" id="quoteBox">Loading quote...</div>
+
+<script>
+    // Dark mode toggle logic
+    const toggleBtn = document.getElementById('themeToggle');
+    toggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        toggleBtn.textContent = document.body.classList.contains('dark-mode') ? '☀' : '🌙';
+    });
+
+    window.onload = () => {
+        const isDark = localStorage.getItem('darkMode') === 'true';
+        document.body.classList.toggle('dark-mode', isDark);
+        toggleBtn.textContent = isDark ? '☀' : '🌙';
+    };
+
+    // Canvas animation logic (same as before)
+    const canvas = document.getElementById("animated-bg-canvas");
+    const ctx = canvas.getContext("2d");
+    let width, height;
+
+    function resizeCanvas() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    const capImg = new Image();
+    capImg.src = "https://img.icons8.com/ios-filled/50/000000/graduation-cap.png";
+    const certImg = new Image();
+    certImg.src = "https://img.icons8.com/ios-filled/50/4caf50/diploma.png";
+
+    const caps = [], certificates = [];
+    let loaded = 0;
+
+    function checkLoaded() {
+        loaded++;
+        if (loaded === 2) {
+            for (let i = 0; i < 35; i++) caps.push(createItem(capImg));
+            for (let i = 0; i < 20; i++) certificates.push(createItem(certImg));
+            animate();
+        }
+    }
+
+    capImg.onload = checkLoaded;
+    certImg.onload = checkLoaded;
+
+    function createItem(img) {
+        return {
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: 24 + Math.random() * 30,
+            dx: (Math.random() - 0.5) * 0.5,
+            dy: (Math.random() - 0.5) * 0.5,
+            rotation: Math.random() * Math.PI * 2,
+            dr: (Math.random() - 0.5) * 0.01,
+            img: img
+        };
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        [...caps, ...certificates].forEach(obj => {
+            obj.x += obj.dx; obj.y += obj.dy; obj.rotation += obj.dr;
+            ctx.save();
+            ctx.translate(obj.x, obj.y);
+            ctx.rotate(obj.rotation);
+            ctx.drawImage(obj.img, -obj.size / 2, -obj.size / 2, obj.size, obj.size);
+            ctx.restore();
+        });
+        requestAnimationFrame(animate);
+    }
+
+    // Quotes
+    const quotes = [
+        "Education is the most powerful weapon you can use to change the world. — Nelson Mandela",
+        "Believe you can and you're halfway there. — Theodore Roosevelt",
+        "Success is not the key to happiness. Happiness is the key to success.",
+        "The beautiful thing about learning is that no one can take it away from you. — B.B. King",
+        "Don't watch the clock; do what it does. Keep going. — Sam Levenson",
+        "Push yourself, because no one else is going to do it for you."
+    ];
+    let quoteIndex = 0;
+    const quoteBox = document.getElementById("quoteBox");
+    function updateQuote() {
+        quoteBox.textContent = quotes[quoteIndex];
+        quoteIndex = (quoteIndex + 1) % quotes.length;
+    }
+    updateQuote();
+    setInterval(updateQuote, 6000);
+</script>
+</body>
+</html>
