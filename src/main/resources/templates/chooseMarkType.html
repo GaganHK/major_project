@@ -3,21 +3,14 @@
 <head>
     <title>Choose Mark Type</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" />
-
-    <script th:inline="javascript">
+    <script>
         let selectedSemester = 0;
-        let enteredSemesters = /*[[${enteredSemesters}]]*/ [];
 
         function showSemesterButtons() {
             document.getElementById("semesterButtons").style.display = "block";
         }
 
         function selectSemester(sem) {
-            if (enteredSemesters.includes(sem)) {
-                alert("Marks for Semester " + sem + " have already been submitted.");
-                return;
-            }
-
             selectedSemester = sem;
             document.getElementById("semesterButtons").style.display = "none";
             document.getElementById("subjectCountForm").style.display = "block";
@@ -26,7 +19,7 @@
         function generateSubjectTable() {
             const count = parseInt(document.getElementById("subjectCount").value);
             const container = document.getElementById("subjectTableContainer");
-            container.innerHTML = "";
+            container.innerHTML = ""; // Clear any existing table
 
             if (isNaN(count) || count <= 0) {
                 alert("Please enter a valid number of subjects.");
@@ -102,6 +95,7 @@
             }
 
             const rows = form.querySelectorAll("tbody tr");
+
             let totalScored = 0;
             let totalMax = 0;
 
@@ -153,19 +147,35 @@
     </div>
 
     <!-- Semester Selection Buttons -->
+    <!-- Semester Selection Dropdown -->
     <div id="semesterButtons" style="display:none;" class="mt-4">
         <h5>Select Semester:</h5>
-        <div class="d-flex justify-content-center flex-wrap">
-            <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(1)">1st Sem</button>
-            <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(2)">2nd Sem</button>
-            <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(3)">3rd Sem</button>
-            <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(4)">4th Sem</button>
-            <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(5)">5th Sem</button>
-            <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(6)">6th Sem</button>
-            <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(7)">7th Sem</button>
-            <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(8)">8th Sem</button>
-        </div>
+             <div class="d-flex justify-content-center flex-wrap">
+                <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(1)">1st Sem</button>
+                <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(2)">2nd Sem</button>
+                <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(3)">3rd Sem</button>
+                <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(4)">4th Sem</button>
+                <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(5)">5th Sem</button>
+                <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(6)">6th Sem</button>
+                <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(7)">7th Sem</button>
+                <button type="button" class="btn btn-outline-primary m-2" onclick="selectSemester(8)">8th Sem</button>
+            </div>
     </div>
+
+    <script>
+        function onSemesterSelected() {
+            const dropdown = document.getElementById("semesterDropdown");
+            const selected = dropdown.value;
+
+            if (selected) {
+                selectedSemester = selected;
+                document.getElementById("subjectCountForm").style.display = "block";
+            } else {
+                document.getElementById("subjectCountForm").style.display = "none";
+            }
+        }
+    </script>
+
 
     <!-- Subject Count Input -->
     <div id="subjectCountForm" style="display:none;" class="mt-4">

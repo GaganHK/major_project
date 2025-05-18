@@ -6,17 +6,18 @@ import com.finalprj.major_proj.dto.SubjectDTO;
 import com.finalprj.major_proj.dto.SubjectMark;
 import com.finalprj.major_proj.entity.Result;
 import com.finalprj.major_proj.entity.Student;
+import com.finalprj.major_proj.repo.ResultRepository;
+import com.finalprj.major_proj.repo.StudentRepository;
 import com.finalprj.major_proj.service.EmailService;
 import com.finalprj.major_proj.service.ResultService;
-import com.finalprj.major_proj.repo.StudentRepository;
+
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
-
 
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +38,9 @@ public class MarkController {
     @Autowired
     private StudentRepository studentRepository;
 
+    @Autowired
+    private ResultRepository resultRepository;
+
     @GetMapping("/chooseMarkType")
     public String chooseMarkType(@RequestParam("email") String email, Model model) {
         model.addAttribute("email", email);
@@ -46,6 +50,19 @@ public class MarkController {
     @GetMapping("/enterSemesterMarks")
     public String enterSemesterMarks(@RequestParam("email") String email, Model model) {
         model.addAttribute("email", email);
+
+        // Get semesters already submitted for this email
+        List<Integer> submittedSemesters = resultRepository.findSemestersByEmail(email); // Make sure this method exists
+
+        // All 8 semesters
+        List<Integer> allSemesters = java.util.stream.IntStream.rangeClosed(1, 8).boxed().toList();
+
+        // Remove already submitted ones
+        List<Integer> availableSemesters = allSemesters.stream()
+                .filter(s -> !submittedSemesters.contains(s))
+                .toList();
+
+        model.addAttribute("availableSemesters", availableSemesters);
         return "semester_marks_form";
     }
 
@@ -57,7 +74,7 @@ public class MarkController {
 
     @PostMapping("/submitMarks")
     public String submitMarks(@ModelAttribute MarksFormDTO marksForm, Model model) {
-        model.addAttribute("marksForm", marksForm);  // For binding in result.html
+        model.addAttribute("marksForm", marksForm);
         model.addAttribute("message", null);
         return "result";
     }
@@ -73,7 +90,6 @@ public class MarkController {
         }
 
         email = email.trim();
-
         MarksForm convertedForm = convertDtoToForm(marksForm);
 
         String dbSaveMessage = resultService.saveResult(convertedForm);
@@ -83,6 +99,7 @@ public class MarkController {
             try {
                 int semester = marksForm.getSemester();
 
+                // Compose email content
                 StringBuilder sb = new StringBuilder();
                 sb.append("Dear Student,\n\n");
                 sb.append("Your marks for semester ").append(semester).append(" have been updated.\n\n");
@@ -92,19 +109,21 @@ public class MarkController {
                 sb.append("Percentage: ").append(marksForm.getPercentage()).append("%\n");
                 sb.append("CGPA: ").append(marksForm.getCgpa()).append("\n\n");
                 sb.append("Subjects:\n");
+
                 for (SubjectDTO sub : marksForm.getSubjects()) {
-                    sb.append(sub.getSubjectName()).append(": Scored ").append(sub.getScored())
-                            .append(" out of ").append(sub.getMax()).append("\n");
+                    sb.append(sub.getSubjectName()).append(": Scored ")
+                            .append(sub.getScored()).append(" out of ").append(sub.getMax()).append("\n");
                 }
+
                 sb.append("\nRegards,\nYour Institution");
 
+                // Send email
                 SimpleMailMessage message = new SimpleMailMessage();
                 message.setTo(email);
                 message.setSubject("Updated Marks for Semester " + semester);
                 message.setText(sb.toString());
 
                 mailSender.send(message);
-
                 model.addAttribute("message", dbSaveMessage + " Result email sent successfully!");
             } catch (Exception e) {
                 model.addAttribute("message", dbSaveMessage + " But error sending email: " + e.getMessage());
@@ -136,100 +155,47 @@ public class MarkController {
         return form;
     }
 
-    // ✅ Unified marks view for both Admin and Student
-//    @GetMapping("/view-marks")
-//    public String viewMarks(@RequestParam(value = "usn", required = false) String usn,
-//                            HttpSession session,
-//                            Model model) {
-//
-//        String email = null;
-//
-//        if (usn != null && !usn.isEmpty()) {
-//            Optional<Student> studentOpt = studentRepository.findByUsn(usn);
-//            if (studentOpt.isPresent()) {
-//                email = studentOpt.get().getEmail();
-//                model.addAttribute("usn", usn);
-//            } else {
-//                model.addAttribute("error", "Student with USN " + usn + " not found.");
-//                return "view-marks";
-//            }
-//        } else {
-//            email = (String) session.getAttribute("email");
-//            if (email == null || email.isEmpty()) {
-//                model.addAttribute("error", "No USN or student email found. Please log in.");
-//                return "view-marks";
-//            }
-//        }
-//
-//        List<Result> results = resultService.getResultsByEmail(email);
-//        model.addAttribute("email", email);
-//        model.addAttribute("results", results);
-//        return "view-marks";
-//   }
-
     @GetMapping("/view-marks")
-    public String viewMarks(@RequestParam(value = "usn", required = false) String usn,
+    public String viewMarks(@RequestParam(required = false) String usn,
                             HttpSession session,
                             Model model) {
 
-        String role = (String) session.getAttribute("role"); // "student" or null (admin)
-        String email = null;
-        String studentName = null;
+        String role = (String) session.getAttribute("role");
+        String email = (String) session.getAttribute("email");
 
-        // If ADMIN and no USN entered yet, show the search form
-        if (role == null && (usn == null || usn.trim().isEmpty())) {
-            return "view-marks"; // form will be shown in the HTML template
-        }
+        // Admin Flow
+        if ("admin".equals(role)) {
+            if (usn == null || usn.trim().isEmpty()) {
+                model.addAttribute("error", "Please enter a USN.");
+                return "view-marks";
+            }
 
-        // ADMIN entered USN
-        if (role == null && usn != null && !usn.trim().isEmpty()) {
             Optional<Student> studentOpt = studentRepository.findByUsn(usn.trim());
             if (studentOpt.isPresent()) {
                 Student student = studentOpt.get();
                 email = student.getEmail();
-                studentName = student.getName();
+                model.addAttribute("studentName", student.getName());
                 model.addAttribute("usn", student.getUsn());
             } else {
-                model.addAttribute("error", "Student with USN " + usn + " not found.");
+                model.addAttribute("error", "No student found for USN: " + usn);
                 return "view-marks";
             }
         }
 
-        // STUDENT is logged in
-        if ("student".equals(role)) {
-            email = (String) session.getAttribute("email");
-            if (email == null || email.isEmpty()) {
-                model.addAttribute("error", "No email in session. Please log in.");
-                return "view-marks";
-            }
-
-            Optional<Student> studentOpt = Optional.ofNullable(studentRepository.findByEmail(email));
-            if (studentOpt.isPresent()) {
-                Student student = studentOpt.get();
-                studentName = student.getName();
-                model.addAttribute("usn", student.getUsn());
-            }
+        if (email == null || email.isEmpty()) {
+            model.addAttribute("error", "Unable to retrieve marks. Email not found.");
+            return "view-marks";
         }
 
-        if (email == null) {
-            // For admin, just return form without error on first visit
-            if (role == null && (usn == null || usn.isEmpty())) {
-                return "view-marks"; // Admin initial visit
-            } else {
-                model.addAttribute("error", "Student not found.");
-                return "view-marks";
-            }
+        List<Result> results = resultRepository.findByEmail(email);
+
+        if (results.isEmpty()) {
+            model.addAttribute("error", "No marks found for this student.");
+        } else {
+            model.addAttribute("results", results);
+            model.addAttribute("email", email);
         }
 
-
-        List<Result> results = resultService.getResultsByEmail(email);
-        model.addAttribute("studentName", studentName);
-        model.addAttribute("email", email);
-        model.addAttribute("results", results);
         return "view-marks";
     }
-
-
 }
-
-

@@ -9,7 +9,8 @@ import java.util.List;
 
 @Entity
 @Data
-@Table(name = "RESULT")
+
+@Table(name = "RESULT", uniqueConstraints = @UniqueConstraint(columnNames = {"email", "semester"}))
 public class Result {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

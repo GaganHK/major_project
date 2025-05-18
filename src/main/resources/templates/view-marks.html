@@ -2,37 +2,59 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>View Marks</title>
+    <link rel="stylesheet" href="/css/style.css" />
     <style>
-        body { font-family: Arial; padding: 20px; background-color: #f0f0f0; }
-        h2 { color: #333; }
-        table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
-        th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
-        th { background-color: #333; color: white; }
-        .search-form { margin-bottom: 20px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        h2, h3 {
+            text-align: center;
+        }
+
+        form {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+<h2>View Marks</h2>
 
-<!-- ✅ Admin-only search bar using 'role' from controller -->
-<div th:if="${role} != 'student'" class="search-form">
-    <form th:action="@{/view-marks}" method="get">
+<!-- Admin-only USN input -->
+<div th:if="${session.role == 'admin'}">
+    <form method="get" action="/view-marks">
         <label for="usn">Enter USN:</label>
         <input type="text" id="usn" name="usn" required />
-        <button type="submit">Search</button>
+        <button type="submit">View</button>
     </form>
 </div>
 
-<!-- Show heading -->
-<h2 th:if="${usn != null}" th:text="'Results for: ' + ${usn}"></h2>
-<h2 th:if="${studentName != null}" th:text="'Student Name: ' + ${studentName}"></h2>
-
-<!-- Show error message -->
-<div th:if="${error}">
-    <p th:text="${error}" style="color:red;"></p>
+<!-- Error Message -->
+<div th:if="${error}" class="error">
+    <p th:text="${error}"></p>
 </div>
 
-<!-- Show results table if results exist -->
-<div th:if="${results != null}">
+<!-- Results Table -->
+<div th:if="${results}">
+    <h3 th:text="'Marks for: ' + ${email}"></h3>
     <table>
         <thead>
         <tr>
@@ -44,16 +66,15 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="result : ${results}">
-            <td th:text="${result.semester}">1</td>
-            <td th:text="${result.totalScored}">500</td>
-            <td th:text="${result.totalMax}">600</td>
-            <td th:text="${result.percentage}">83.33</td>
-            <td th:text="${result.cgpa}">8.5</td>
+        <tr th:each="res : ${results}">
+            <td th:text="${res.semester}"></td>
+            <td th:text="${res.totalScored}"></td>
+            <td th:text="${res.totalMax}"></td>
+            <td th:text="${res.percentage} + '%'"></td>
+            <td th:text="${res.cgpa}"></td>
         </tr>
         </tbody>
     </table>
 </div>
-
 </body>
 </html>

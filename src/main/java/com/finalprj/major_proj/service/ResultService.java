@@ -6,22 +6,18 @@ import com.finalprj.major_proj.repo.ResultRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.security.auth.Subject;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ResultService {
     @Autowired
     private ResultRepository resultRepository;
+
     public List<Result> getResultsByEmail(String email) {
         return resultRepository.findByEmail(email);
     }
 
-
     public String saveResult(MarksForm form) {
-        // Check if result already exists
         // Check if result already exists for this email and semester
         if (resultRepository.existsByEmailAndSemester(form.getEmail(), form.getSemester())) {
             return "Marks for Semester " + form.getSemester() + " already exist for this student.";
@@ -36,9 +32,13 @@ public class ResultService {
         result.setPercentage(form.getPercentage());
         result.setCgpa(form.getCgpa());
 
-        // Save to DB
-        resultRepository.save(result);
-
-        return "Marks stored successfully!";
+        try {
+            // Save to DB
+            resultRepository.save(result);
+            return "Marks stored successfully!";
+        } catch (Exception e) {
+            // Catch any unexpected DB-level duplicate constraint errors
+            return "Error saving marks: " + e.getMessage();
+        }
     }
 }
